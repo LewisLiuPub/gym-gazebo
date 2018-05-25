@@ -6,7 +6,7 @@ import numpy
 import random
 import time
 
-import qlearn
+import qlearn_slam
 import liveplot
 
 def render():
@@ -21,7 +21,7 @@ def render():
 
 if __name__ == '__main__':
 
-    env = gym.make('GazeboCircuit2TurtlebotLidar-v0')
+    env = gym.make('GazeboCircuit2TurtlebotLidar-v1')
 
     outdir = '/tmp/gazebo_gym_experiments'
     env = gym.wrappers.Monitor(env, outdir, force=True)
@@ -29,7 +29,7 @@ if __name__ == '__main__':
 
     last_time_steps = numpy.ndarray(0)
 
-    qlearn = qlearn.QLearn(actions=range(env.action_space.n),
+    qlearn = qlearn_slam.QLearn(actions=range(env.action_space.n),
                     alpha=0.2, gamma=0.8, epsilon=0.9)
 
     initial_epsilon = qlearn.epsilon
@@ -40,12 +40,15 @@ if __name__ == '__main__':
     total_episodes = 10000
     highest_reward = 0
 
+    done = False
+    observation = env.reset()
     for x in range(total_episodes):
-        done = False
+        #done = False
 
         cumulated_reward = 0 #Should going forward give more reward then L/R ?
 
-        observation = env.reset()
+        if done:
+            observation = env.reset()
 
         if qlearn.epsilon > 0.05:
             qlearn.epsilon *= epsilon_discount
@@ -57,7 +60,7 @@ if __name__ == '__main__':
         for i in range(1500):
 
             # Pick an action based on the current state
-            action = qlearn.chooseAction(state)
+            action = qlearn.chooseAction(observation)
 
             # Execute the action and get feedback
             observation, reward, done, info = env.step(action)
